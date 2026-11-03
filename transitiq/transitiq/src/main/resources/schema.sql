@@ -1,0 +1,51 @@
+CREATE TABLE IF NOT EXISTS bus_stops (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL UNIQUE,
+  latitude DECIMAL(9,6) NOT NULL,
+  longitude DECIMAL(9,6) NOT NULL,
+  description VARCHAR(255)
+);
+CREATE TABLE IF NOT EXISTS buses (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  code VARCHAR(20) NOT NULL UNIQUE,
+  name VARCHAR(100) NOT NULL
+);
+CREATE TABLE IF NOT EXISTS routes (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  bus_id INT NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  FOREIGN KEY (bus_id) REFERENCES buses(id) ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS route_stops (
+  route_id INT NOT NULL,
+  stop_id INT NOT NULL,
+  seq INT NOT NULL,
+  PRIMARY KEY (route_id, seq),
+  FOREIGN KEY (route_id) REFERENCES routes(id) ON DELETE CASCADE,
+  FOREIGN KEY (stop_id) REFERENCES bus_stops(id) ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS connections (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  from_stop_id INT NOT NULL,
+  to_stop_id INT NOT NULL,
+  route_id INT NOT NULL,
+  distance_km DECIMAL(8,2) NOT NULL CHECK (distance_km > 0),
+  time_min DECIMAL(8,2) NOT NULL CHECK (time_min > 0),
+  fare DECIMAL(8,2) NOT NULL CHECK (fare >= 0),
+  FOREIGN KEY (from_stop_id) REFERENCES bus_stops(id) ON DELETE CASCADE,
+  FOREIGN KEY (to_stop_id) REFERENCES bus_stops(id) ON DELETE CASCADE,
+  FOREIGN KEY (route_id) REFERENCES routes(id) ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS journeys (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  source_id INT NOT NULL,
+  destination_id INT NOT NULL,
+  mode VARCHAR(20) NOT NULL,
+  distance_km DECIMAL(8,2) NOT NULL,
+  time_min DECIMAL(8,2) NOT NULL,
+  fare DECIMAL(8,2) NOT NULL,
+  line_codes VARCHAR(100) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (source_id) REFERENCES bus_stops(id) ON DELETE CASCADE,
+  FOREIGN KEY (destination_id) REFERENCES bus_stops(id) ON DELETE CASCADE
+);

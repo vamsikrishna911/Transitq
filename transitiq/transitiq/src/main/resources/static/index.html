@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TransitIQ – Smart Public Transportation</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<button id="menuBtn" aria-label="Menu">☰</button>
+<aside id="sidebar">
+  <div class="brand">🚌 Transit<span>IQ</span></div>
+  <nav>
+    <button data-page="dashboard" class="active">📊 Dashboard</button>
+    <button data-page="planner">🧭 Route Planner</button>
+    <button data-page="map">🗺️ Interactive Map</button>
+    <button data-page="stops">📍 Bus Stops</button>
+    <button data-page="analytics">📈 Route Analytics</button>
+    <button data-page="dsa">🧠 DSA Info</button>
+  </nav>
+</aside>
+<main>
+<div id="error" class="alert" hidden></div>
+<div id="loading" class="loading" hidden>Loading…</div>
+
+<section id="dashboard" class="page active">
+  <h1>Dashboard</h1>
+  <div class="cards" id="dashCards"></div>
+  <div class="grid2">
+    <div class="panel"><h2>Popular Bus Stops</h2><div id="dashPopular"></div></div>
+    <div class="panel"><h2>Network Statistics</h2><div id="dashStats"></div></div>
+  </div>
+  <div class="panel"><h2>Recent Searches</h2><div class="scroll"><table id="dashRecent"></table></div></div>
+</section>
+
+<section id="planner" class="page">
+  <h1>Route Planner</h1>
+  <div class="panel">
+    <div class="form">
+      <label>Source<select id="src"></select></label>
+      <label>Destination<select id="dst"></select></label>
+      <label>Optimize for
+        <select id="mode">
+          <option value="DISTANCE">Shortest Distance</option>
+          <option value="TIME" selected>Fastest Route</option>
+          <option value="FARE">Cheapest Route</option>
+          <option value="STOPS">Minimum Stops</option>
+        </select></label>
+      <div class="actions"><button class="primary" id="findBtn">Find Route</button><button id="clearBtn">Clear</button></div>
+    </div>
+  </div>
+  <div id="result"></div>
+</section>
+
+<section id="map" class="page">
+  <h1>Interactive Map</h1>
+  <div class="legend" id="legend"></div>
+  <div id="leaflet"></div>
+</section>
+
+<section id="stops" class="page">
+  <h1>Bus Stops</h1>
+  <div class="toolbar"><input id="stopSearch" type="search" placeholder="Search stops…"><button class="primary" id="addStopBtn">+ Add Stop</button></div>
+  <div class="panel scroll"><table id="stopTable"></table></div>
+</section>
+
+<section id="analytics" class="page">
+  <h1>Route Analytics</h1>
+  <div class="cards" id="anCards"></div>
+  <div class="grid2">
+    <div class="panel"><h2>Most Connected Stops</h2><div id="anDegree"></div></div>
+    <div class="panel"><h2>Popular Routes (from searches)</h2><div id="anRoutes"></div></div>
+  </div>
+  <div class="grid2">
+    <div class="panel"><h2>Network Connectivity</h2><div id="anComponents"></div></div>
+    <div class="panel"><h2>Reachable Stops per Stop</h2><div id="anReach"></div></div>
+  </div>
+</section>
+
+<section id="dsa" class="page">
+  <h1>DSA Information</h1>
+  <div class="panel scroll"><table>
+    <tr><th>Algorithm</th><th>Purpose</th><th>Data structures</th><th>Time</th><th>Space</th></tr>
+    <tr><td>BFS</td><td>Minimum number of stops</td><td>ArrayDeque queue, HashSet, HashMap</td><td>O(V + E)</td><td>O(V)</td></tr>
+    <tr><td>DFS</td><td>Connected components, reachability</td><td>ArrayDeque stack, HashSet</td><td>O(V + E)</td><td>O(V)</td></tr>
+    <tr><td>Dijkstra</td><td>Shortest distance / fastest / cheapest</td><td>PriorityQueue, HashMap, previous-edge map</td><td>O((V + E) log V)</td><td>O(V)</td></tr>
+    <tr><td>Alternative routes (Yen, k=3)</td><td>Up to 3 distinct loopless routes</td><td>Dijkstra with banned nodes/edges, candidate list</td><td>O(k · V · (V + E) log V)</td><td>O(k · V)</td></tr>
+    <tr><td>Analytics</td><td>Degree, components, average journey</td><td>HashMap degree counts, DFS, Dijkstra per pair</td><td>O(V² (V + E) log V)</td><td>O(V)</td></tr>
+  </table></div>
+  <div class="panel"><p>The network is a weighted undirected graph stored as <code>HashMap&lt;Integer, List&lt;Edge&gt;&gt;</code>. Each edge carries distance (km), time (min) and fare. The graph is rebuilt from MySQL for every request, so CRUD changes apply immediately.</p></div>
+</section>
+</main>
+
+<dialog id="stopDialog">
+  <form method="dialog" id="stopForm">
+    <h2 id="dlgTitle">Add Stop</h2>
+    <input type="hidden" id="stopId">
+    <label>Name<input id="sName" required maxlength="100"></label>
+    <label>Latitude<input id="sLat" type="number" step="any" min="-90" max="90" required></label>
+    <label>Longitude<input id="sLng" type="number" step="any" min="-180" max="180" required></label>
+    <label>Description<input id="sDesc" maxlength="255"></label>
+    <div class="actions"><button class="primary" id="saveStop" value="save">Save</button><button type="button" id="cancelStop">Cancel</button></div>
+  </form>
+</dialog>
+<dialog id="detailDialog"><div id="detailBody"></div><div class="actions"><button id="closeDetail">Close</button></div></dialog>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
